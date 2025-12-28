@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Practice Japanese conversations with voice recognition">
+    <title>日本語練習 - Japanese Practice</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 class="app-title">
+                <span class="title-jp">日本語練習</span>
+                <span class="title-en">Japanese Practice</span>
+            </h1>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Scenario Selection Screen -->
+            <div id="scenarioScreen" class="screen active">
+                <h2 class="section-title">Choose a Scenario</h2>
+                <div class="scenario-grid">
+                    <button class="scenario-card" data-scenario="coffee">
+                        <span class="scenario-icon">☕</span>
+                        <span class="scenario-name-jp">カフェ</span>
+                        <span class="scenario-name-en">Coffee Shop</span>
+                    </button>
+                    <button class="scenario-card" data-scenario="ramen">
+                        <span class="scenario-icon">🍜</span>
+                        <span class="scenario-name-jp">ラーメン屋</span>
+                        <span class="scenario-name-en">Ramen Shop</span>
+                    </button>
+                    <button class="scenario-card" data-scenario="shopping">
+                        <span class="scenario-icon">🛍️</span>
+                        <span class="scenario-name-jp">買い物</span>
+                        <span class="scenario-name-en">Shopping</span>
+                    </button>
+                    <button class="scenario-card" data-scenario="asking">
+                        <span class="scenario-icon">❓</span>
+                        <span class="scenario-name-jp">質問</span>
+                        <span class="scenario-name-en">Asking Questions</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Practice Screen -->
+            <div id="practiceScreen" class="screen">
+                <button class="back-button" id="backButton">← Back</button>
+                
+                <div class="practice-container">
+                    <h2 class="practice-title" id="practiceTitle"></h2>
+                    
+                    <!-- Phrase List -->
+                    <div class="phrase-list" id="phraseList"></div>
+                    
+                    <!-- Practice Area -->
+                    <div class="practice-area">
+                        <div class="current-phrase" id="currentPhrase">
+                            <div class="phrase-jp" id="phraseJp">Select a phrase to practice</div>
+                            <div class="phrase-romaji" id="phraseRomaji"></div>
+                            <div class="phrase-en" id="phraseEn"></div>
+                        </div>
+                        
+                        <!-- Voice Controls -->
+                        <div class="voice-controls">
+                            <button class="record-button" id="recordButton" disabled>
+                                <span class="record-icon">🎤</span>
+                                <span class="record-text">Tap to Speak</span>
+                            </button>
+                            <div class="recording-status" id="recordingStatus"></div>
+                        </div>
+                        
+                        <!-- Result Display -->
+                        <div class="result-display" id="resultDisplay"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="install-prompt" id="installPrompt" style="display: none;">
+                <span>Install app for offline use</span>
+                <button id="installButton">Install</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="phrases.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

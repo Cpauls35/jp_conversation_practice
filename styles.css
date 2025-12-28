@@ -1,0 +1,470 @@
+:root {
+    /* Japanese-inspired color palette */
+    --ink-black: #1a1a2e;
+    --paper-white: #f7f7f2;
+    --vermillion: #d62828;
+    --indigo: #2d3561;
+    --gold: #d4af37;
+    --sage: #8ba888;
+    --shadow: rgba(26, 26, 46, 0.1);
+    
+    /* Typography */
+    --font-jp: 'Noto Sans JP', sans-serif;
+    --font-en: 'Courier Prime', monospace;
+    
+    /* Spacing */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+    
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-en);
+    background: var(--paper-white);
+    color: var(--ink-black);
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+.app-container {
+    max-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.app-header {
+    background: var(--ink-black);
+    color: var(--paper-white);
+    padding: var(--space-lg) var(--space-md);
+    text-align: center;
+    border-bottom: 3px solid var(--vermillion);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.app-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.title-jp {
+    font-family: var(--font-jp);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.title-en {
+    font-family: var(--font-en);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    font-weight: 400;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: var(--space-lg) var(--space-md);
+}
+
+.screen {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-title {
+    font-family: var(--font-jp);
+    font-size: 1.5rem;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    color: var(--indigo);
+}
+
+/* Scenario Grid */
+.scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-md);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.scenario-card {
+    background: white;
+    border: 2px solid var(--ink-black);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-jp);
+    box-shadow: 4px 4px 0 var(--ink-black);
+}
+
+.scenario-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--ink-black);
+}
+
+.scenario-card:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink-black);
+}
+
+.scenario-icon {
+    font-size: 3rem;
+    filter: grayscale(0.3);
+}
+
+.scenario-name-jp {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink-black);
+}
+
+.scenario-name-en {
+    font-family: var(--font-en);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--indigo);
+}
+
+/* Practice Screen */
+.back-button {
+    background: transparent;
+    border: none;
+    font-family: var(--font-en);
+    font-size: 1rem;
+    color: var(--indigo);
+    cursor: pointer;
+    padding: var(--space-sm);
+    margin-bottom: var(--space-md);
+    transition: color 0.2s;
+}
+
+.back-button:hover {
+    color: var(--vermillion);
+}
+
+.practice-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.practice-title {
+    font-family: var(--font-jp);
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    color: var(--ink-black);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid var(--vermillion);
+}
+
+/* Phrase List */
+.phrase-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+}
+
+.phrase-item {
+    background: white;
+    border: 2px solid var(--ink-black);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.phrase-item:hover {
+    border-color: var(--vermillion);
+    transform: translateX(4px);
+}
+
+.phrase-item.active {
+    background: var(--indigo);
+    color: white;
+    border-color: var(--indigo);
+}
+
+.phrase-item-jp {
+    font-family: var(--font-jp);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+}
+
+.phrase-item-romaji {
+    font-family: var(--font-en);
+    font-size: 0.9rem;
+    color: var(--sage);
+    margin-bottom: var(--space-xs);
+}
+
+.phrase-item.active .phrase-item-romaji {
+    color: var(--gold);
+}
+
+.phrase-item-en {
+    font-family: var(--font-en);
+    font-size: 0.85rem;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Practice Area */
+.practice-area {
+    background: white;
+    border: 3px solid var(--ink-black);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: 8px 8px 0 var(--shadow);
+}
+
+.current-phrase {
+    text-align: center;
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    background: linear-gradient(135deg, var(--paper-white) 0%, white 100%);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--shadow);
+}
+
+.phrase-jp {
+    font-family: var(--font-jp);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink-black);
+    margin-bottom: var(--space-sm);
+    line-height: 1.4;
+}
+
+.phrase-romaji {
+    font-family: var(--font-en);
+    font-size: 1.1rem;
+    color: var(--sage);
+    margin-bottom: var(--space-sm);
+}
+
+.phrase-en {
+    font-family: var(--font-en);
+    font-size: 1rem;
+    color: var(--indigo);
+    font-style: italic;
+}
+
+/* Voice Controls */
+.voice-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-xl) 0;
+}
+
+.record-button {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--ink-black);
+    background: var(--vermillion);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(214, 40, 40, 0.3);
+    font-family: var(--font-en);
+}
+
+.record-button:not(:disabled):hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(214, 40, 40, 0.4);
+}
+
+.record-button:not(:disabled):active {
+    transform: scale(0.95);
+}
+
+.record-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #999;
+}
+
+.record-button.recording {
+    background: var(--indigo);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.record-icon {
+    font-size: 2.5rem;
+}
+
+.record-text {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.recording-status {
+    font-family: var(--font-en);
+    font-size: 0.9rem;
+    color: var(--indigo);
+    min-height: 1.5rem;
+    text-align: center;
+}
+
+/* Result Display */
+.result-display {
+    min-height: 100px;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-family: var(--font-en);
+}
+
+.result-display.success {
+    background: rgba(139, 168, 136, 0.2);
+    border: 2px solid var(--sage);
+    color: var(--ink-black);
+}
+
+.result-display.error {
+    background: rgba(214, 40, 40, 0.1);
+    border: 2px solid var(--vermillion);
+    color: var(--ink-black);
+}
+
+.result-heard {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+}
+
+.result-message {
+    font-size: 1rem;
+}
+
+/* Footer */
+.app-footer {
+    padding: var(--space-md);
+    text-align: center;
+}
+
+.install-prompt {
+    background: var(--indigo);
+    color: white;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+    font-family: var(--font-en);
+    font-size: 0.9rem;
+}
+
+#installButton {
+    background: var(--vermillion);
+    color: white;
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-en);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#installButton:hover {
+    background: var(--gold);
+    color: var(--ink-black);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .title-jp {
+        font-size: 1.5rem;
+    }
+    
+    .title-en {
+        font-size: 0.75rem;
+    }
+    
+    .scenario-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .phrase-jp {
+        font-size: 1.5rem;
+    }
+    
+    .practice-area {
+        padding: var(--space-md);
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
