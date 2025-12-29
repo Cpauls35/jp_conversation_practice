@@ -157,11 +157,22 @@ function selectPhrase(phrase, element) {
 function showScreen(screenName) {
     scenarioScreen.classList.remove('active');
     practiceScreen.classList.remove('active');
-    
+
+    // Get knowledge and flashcard screens
+    const knowledgeScreen = document.getElementById('knowledgeScreen');
+    const flashcardScreen = document.getElementById('flashcardScreen');
+
+    if (knowledgeScreen) knowledgeScreen.classList.remove('active');
+    if (flashcardScreen) flashcardScreen.classList.remove('active');
+
     if (screenName === 'scenario') {
         scenarioScreen.classList.add('active');
     } else if (screenName === 'practice') {
         practiceScreen.classList.add('active');
+    } else if (screenName === 'knowledge' && knowledgeScreen) {
+        knowledgeScreen.classList.add('active');
+    } else if (screenName === 'flashcard' && flashcardScreen) {
+        flashcardScreen.classList.add('active');
     }
 }
 
