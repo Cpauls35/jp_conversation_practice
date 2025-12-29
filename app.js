@@ -679,19 +679,23 @@ function showCurrentCard() {
     isFlipped = false;
 
     // Update content based on study mode
+    const cardFront = document.getElementById('cardFront');
+    const cardJapanese = document.getElementById('cardJapanese');
+    const cardRomaji = document.getElementById('cardRomaji');
+
     if (studyMode === 'enToJp') {
-        // Show English on front, Japanese on back
-        document.getElementById('cardFront').textContent = card.front;
-        document.getElementById('cardJapanese').textContent = card.back;
-        document.getElementById('cardRomaji').textContent = card.romaji;
+        // EN → JP: Show English on front, Japanese on back
+        cardFront.textContent = card.front;
+        cardJapanese.textContent = card.back;
+        cardRomaji.textContent = card.romaji;
     } else {
-        // Show Japanese on front, English on back
-        document.getElementById('cardFront').innerHTML = `
+        // JP → EN: Show Japanese on front, English on back
+        cardFront.innerHTML = `
             <div style="font-family: var(--font-jp); font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${card.back}</div>
             <div style="font-family: var(--font-en); font-size: 1.2rem; color: var(--sage);">${card.romaji}</div>
         `;
-        document.getElementById('cardJapanese').textContent = card.front;
-        document.getElementById('cardRomaji').textContent = '';
+        cardJapanese.textContent = card.front;
+        cardRomaji.textContent = '';
     }
 
     // Update progress
