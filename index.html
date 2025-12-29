@@ -27,7 +27,26 @@
         <main class="main-content">
             <!-- Scenario Selection Screen -->
             <div id="scenarioScreen" class="screen active">
-                <h2 class="section-title">Choose a Scenario</h2>
+                <h2 class="section-title">Choose a Mode</h2>
+                
+                <!-- Mode Selection -->
+                <div class="mode-tabs">
+                    <button class="mode-tab active" data-mode="scenarios">
+                        <span class="mode-icon">🎭</span>
+                        <span>Scenarios</span>
+                    </button>
+                    <button class="mode-tab" data-mode="knowledge">
+                        <span class="mode-icon">📚</span>
+                        <span>Knowledge</span>
+                    </button>
+                    <button class="mode-tab" data-mode="flashcards">
+                        <span class="mode-icon">🎴</span>
+                        <span>Flashcards</span>
+                    </button>
+                </div>
+
+                <!-- Scenarios Grid -->
+                <div id="scenariosContent" class="mode-content active">
                 <div class="scenario-grid">
                     <button class="scenario-card" data-scenario="coffee">
                         <span class="scenario-icon">☕</span>
@@ -39,6 +58,21 @@
                         <span class="scenario-name-jp">ラーメン屋</span>
                         <span class="scenario-name-en">Ramen Shop</span>
                     </button>
+                    <button class="scenario-card" data-scenario="numbers">
+                        <span class="scenario-icon">🔢</span>
+                        <span class="scenario-name-jp">数字</span>
+                        <span class="scenario-name-en">Numbers</span>
+                    </button>
+                    <button class="scenario-card" data-scenario="train">
+                        <span class="scenario-icon">🚆</span>
+                        <span class="scenario-name-jp">電車</span>
+                        <span class="scenario-name-en">Train Station</span>
+                    </button>
+                    <button class="scenario-card" data-scenario="directions">
+                        <span class="scenario-icon">🗺️</span>
+                        <span class="scenario-name-jp">道案内</span>
+                        <span class="scenario-name-en">Directions</span>
+                    </button>
                     <button class="scenario-card" data-scenario="shopping">
                         <span class="scenario-icon">🛍️</span>
                         <span class="scenario-name-jp">買い物</span>
@@ -47,8 +81,19 @@
                     <button class="scenario-card" data-scenario="asking">
                         <span class="scenario-icon">❓</span>
                         <span class="scenario-name-jp">質問</span>
-                        <span class="scenario-name-en">Asking Questions</span>
+                        <span class="scenario-name-en">Questions</span>
                     </button>
+                </div>
+                </div>
+                
+                <!-- Knowledge Content -->
+                <div id="knowledgeContent" class="mode-content">
+                    <div class="knowledge-grid" id="knowledgeGrid"></div>
+                </div>
+                
+                <!-- Flashcards Content -->
+                <div id="flashcardsContent" class="mode-content">
+                    <div class="flashcard-sets" id="flashcardSets"></div>
                 </div>
             </div>
 
@@ -59,11 +104,39 @@
                 <div class="practice-container">
                     <h2 class="practice-title" id="practiceTitle"></h2>
                     
+                    <!-- Difficulty Toggle -->
+                    <div class="difficulty-toggle">
+                        <span class="difficulty-label">Difficulty:</span>
+                        <button class="difficulty-btn active" id="easyMode">
+                            <span class="diff-icon">📖</span>
+                            <span>Easy</span>
+                            <span class="diff-desc">Show text</span>
+                        </button>
+                        <button class="difficulty-btn" id="hardMode">
+                            <span class="diff-icon">🎧</span>
+                            <span>Hard</span>
+                            <span class="diff-desc">Audio only</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Role Play Introduction -->
+                    <div class="role-play-intro" id="rolePlayIntro" style="display: none;"></div>
+                    
                     <!-- Phrase List -->
                     <div class="phrase-list" id="phraseList"></div>
                     
                     <!-- Practice Area -->
                     <div class="practice-area">
+                        <div class="audio-controls">
+                            <button class="audio-play-button" id="audioPlayButton" disabled>
+                                <span class="audio-icon">🔊</span>
+                                <span class="audio-text">Play Audio</span>
+                            </button>
+                            <button class="audio-repeat-button" id="audioRepeatButton" disabled style="display: none;">
+                                <span class="audio-icon">🔁</span>
+                            </button>
+                        </div>
+                        
                         <div class="current-phrase" id="currentPhrase">
                             <div class="phrase-jp" id="phraseJp">Select a phrase to practice</div>
                             <div class="phrase-romaji" id="phraseRomaji"></div>
@@ -84,6 +157,61 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Knowledge Detail Screen -->
+            <div id="knowledgeScreen" class="screen">
+                <button class="back-button" id="knowledgeBackButton">← Back</button>
+                <div class="knowledge-detail" id="knowledgeDetail"></div>
+            </div>
+
+            <!-- Flashcard Practice Screen -->
+            <div id="flashcardScreen" class="screen">
+                <button class="back-button" id="flashcardBackButton">← Back to Sets</button>
+                <div class="flashcard-practice">
+                    <div class="flashcard-header">
+                        <h2 class="flashcard-title" id="flashcardTitle"></h2>
+                        <div class="flashcard-progress" id="flashcardProgress"></div>
+                    </div>
+                    
+                    <div class="flashcard-container">
+                        <div class="flashcard" id="flashcard">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <div class="card-content" id="cardFront"></div>
+                                </div>
+                                <div class="flashcard-back">
+                                    <div class="card-content-back">
+                                        <div class="card-japanese" id="cardJapanese"></div>
+                                        <div class="card-romaji" id="cardRomaji"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="flip-button" id="flipButton">Flip Card</button>
+                    </div>
+                    
+                    <div class="flashcard-controls" id="flashcardControls" style="display: none;">
+                        <button class="result-button incorrect-button" id="incorrectButton">
+                            <span>❌</span>
+                            <span>Incorrect</span>
+                        </button>
+                        <button class="result-button correct-button" id="correctButton">
+                            <span>✅</span>
+                            <span>Correct</span>
+                        </button>
+                    </div>
+                    
+                    <div class="flashcard-summary" id="flashcardSummary" style="display: none;">
+                        <h3>Round Complete! 🎉</h3>
+                        <div class="summary-stats" id="summaryStats"></div>
+                        <div class="summary-actions">
+                            <button class="action-button" id="reviewIncorrect">Review Incorrect</button>
+                            <button class="action-button" id="restartSet">Restart Set</button>
+                            <button class="action-button" id="backToSets">Choose Another Set</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Footer -->
@@ -96,6 +224,8 @@
     </div>
 
     <script src="phrases.js"></script>
+    <script src="knowledge.js"></script>
+    <script src="flashcards.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

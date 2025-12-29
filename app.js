@@ -4,6 +4,7 @@ let currentPhrase = null;
 let isRecording = false;
 let recognition = null;
 let deferredPrompt = null;
+let rolePlayMode = false;
 
 // DOM elements
 const scenarioScreen = document.getElementById('scenarioScreen');
@@ -19,6 +20,7 @@ const phraseRomaji = document.getElementById('phraseRomaji');
 const phraseEn = document.getElementById('phraseEn');
 const installPrompt = document.getElementById('installPrompt');
 const installButton = document.getElementById('installButton');
+const rolePlayIntro = document.getElementById('rolePlayIntro');
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,6 +43,7 @@ function initializeScenarioButtons() {
         showScreen('scenario');
         currentScenario = null;
         currentPhrase = null;
+        rolePlayMode = false;
         recordButton.disabled = true;
     });
 }
@@ -57,6 +60,16 @@ function loadScenario(scenario) {
     
     // Update title
     practiceTitle.textContent = scenarioData.title;
+    
+    // Check if role-play mode
+    rolePlayMode = scenarioData.rolePlay || false;
+    
+    // Show role-play intro if applicable
+    if (rolePlayMode && scenarioData.intro) {
+        showRolePlayIntro(scenarioData.intro);
+    } else {
+        rolePlayIntro.style.display = 'none';
+    }
     
     // Build phrase list
     phraseList.innerHTML = '';
@@ -80,6 +93,39 @@ function loadScenario(scenario) {
     resultDisplay.className = 'result-display';
     
     showScreen('practice');
+}
+
+// Show role-play introduction
+function showRolePlayIntro(intro) {
+    rolePlayIntro.style.display = 'block';
+    
+    let introHTML = '<div class="role-play-header">🎭 Role Play Scenario</div>';
+    
+    if (intro.shopkeeper) {
+        introHTML += `
+            <div class="role-play-dialogue">
+                <div class="dialogue-label">Staff says:</div>
+                <div class="dialogue-jp">${intro.shopkeeper.japanese}</div>
+                <div class="dialogue-romaji">${intro.shopkeeper.romaji}</div>
+                <div class="dialogue-en">"${intro.shopkeeper.english}"</div>
+            </div>
+        `;
+    }
+    
+    if (intro.userResponse) {
+        introHTML += `
+            <div class="role-play-dialogue user-response">
+                <div class="dialogue-label">You can respond:</div>
+                <div class="dialogue-jp">${intro.userResponse.japanese}</div>
+                <div class="dialogue-romaji">${intro.userResponse.romaji}</div>
+                <div class="dialogue-en">"${intro.userResponse.english}"</div>
+            </div>
+        `;
+    }
+    
+    introHTML += '<div class="role-play-instruction">👇 Choose a phrase below to practice your response</div>';
+    
+    rolePlayIntro.innerHTML = introHTML;
 }
 
 // Select phrase to practice
@@ -257,10 +303,20 @@ function compareJapanese(expected, heard) {
 
 // Show result
 function showResult(type, heard, message, confidence) {
+    const expectedPhrase = currentPhrase;
+    
     resultDisplay.className = `result-display ${type}`;
     resultDisplay.innerHTML = `
         <div class="result-heard">You said: ${heard}</div>
         <div class="result-message">${message}</div>
+        ${type === 'error' || confidence < 0.8 ? `
+            <div class="pronunciation-help" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                <div style="font-weight: 700; margin-bottom: 0.5rem;">📚 Target Phrase:</div>
+                <div style="font-family: var(--font-jp); font-size: 1.1rem; margin-bottom: 0.5rem;">${expectedPhrase.japanese}</div>
+                <div style="color: var(--sage); margin-bottom: 0.5rem;">Romaji: ${expectedPhrase.romaji}</div>
+                <div style="font-size: 0.85rem; font-style: italic; color: var(--indigo);">🗣️ Pronunciation: ${expectedPhrase.pronunciation || 'Listen carefully to the sounds and practice slowly'}</div>
+            </div>
+        ` : ''}
         <div class="result-confidence" style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.7;">
             Confidence: ${(confidence * 100).toFixed(0)}%
         </div>
@@ -306,3 +362,465 @@ function initializePWA() {
         deferredPrompt = null;
     });
 }
+
+// ============================================
+// KNOWLEDGE AND FLASHCARD FUNCTIONALITY
+// ============================================
+
+// Additional state for new features
+let currentMode = 'scenarios';
+let currentKnowledgeCategory = null;
+let currentFlashcardSet = null;
+let flashcardIndex = 0;
+let flashcardDeck = [];
+let incorrectCards = [];
+let correctCount = 0;
+let isFlipped = false;
+
+// Additional DOM elements
+const modeTabs = document.querySelectorAll('.mode-tab');
+const scenariosContent = document.getElementById('scenariosContent');
+const knowledgeContent = document.getElementById('knowledgeContent');
+const flashcardsContent = document.getElementById('flashcardsContent');
+const knowledgeGrid = document.getElementById('knowledgeGrid');
+const flashcardSets = document.getElementById('flashcardSets');
+const knowledgeScreen = document.getElementById('knowledgeScreen');
+const flashcardScreen = document.getElementById('flashcardScreen');
+const knowledgeBackButton = document.getElementById('knowledgeBackButton');
+const flashcardBackButton = document.getElementById('flashcardBackButton');
+
+// Initialize knowledge and flashcard features
+function initializeKnowledgeAndFlashcards() {
+    // Mode tab switching
+    modeTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const mode = tab.dataset.mode;
+            switchMode(mode);
+        });
+    });
+    
+    // Initialize knowledge grid
+    populateKnowledgeGrid();
+    
+    // Initialize flashcard sets
+    populateFlashcardSets();
+    
+    // Back buttons
+    knowledgeBackButton.addEventListener('click', () => {
+        showScreen('scenario');
+        switchMode('knowledge');
+    });
+    
+    flashcardBackButton.addEventListener('click', () => {
+        showScreen('scenario');
+        switchMode('flashcards');
+    });
+}
+
+// Switch between modes
+function switchMode(mode) {
+    currentMode = mode;
+    
+    // Update tabs
+    modeTabs.forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+    });
+    
+    // Update content
+    scenariosContent.classList.toggle('active', mode === 'scenarios');
+    knowledgeContent.classList.toggle('active', mode === 'knowledge');
+    flashcardsContent.classList.toggle('active', mode === 'flashcards');
+}
+
+// ============================================
+// KNOWLEDGE SECTION
+// ============================================
+
+function populateKnowledgeGrid() {
+    knowledgeGrid.innerHTML = '';
+    
+    Object.keys(knowledge).forEach(categoryKey => {
+        const category = knowledge[categoryKey];
+        const card = document.createElement('div');
+        card.className = 'knowledge-card';
+        card.innerHTML = `
+            <div class="knowledge-card-icon">${category.icon}</div>
+            <div class="knowledge-card-title">${category.title}</div>
+        `;
+        card.addEventListener('click', () => showKnowledgeDetail(categoryKey));
+        knowledgeGrid.appendChild(card);
+    });
+}
+
+function showKnowledgeDetail(categoryKey) {
+    currentKnowledgeCategory = categoryKey;
+    const category = knowledge[categoryKey];
+    const detail = document.getElementById('knowledgeDetail');
+    
+    let html = `<h2 class="knowledge-detail-title">${category.title}</h2>`;
+    
+    category.items.forEach(item => {
+        html += `
+            <div class="knowledge-item">
+                <div class="knowledge-item-word">${item.word}</div>
+                ${item.romaji ? `<div class="knowledge-item-romaji">${item.romaji}</div>` : ''}
+                ${item.explanation ? `<div class="knowledge-item-explanation">${item.explanation}</div>` : ''}
+                
+                ${item.details ? item.details.map(detail => `
+                    <div class="knowledge-detail-section">
+                        <div class="knowledge-detail-term">${detail.term}</div>
+                        ${detail.usage ? `<div class="knowledge-detail-usage"><strong>Usage:</strong> ${detail.usage}</div>` : ''}
+                        ${detail.formality ? `<div class="knowledge-detail-formality"><strong>Formality:</strong> ${detail.formality}</div>` : ''}
+                        ${detail.meaning ? `<div class="knowledge-detail-formality"><strong>Meaning:</strong> ${detail.meaning}</div>` : ''}
+                        ${detail.pattern ? `<div class="knowledge-detail-formality"><strong>Pattern:</strong> ${detail.pattern}</div>` : ''}
+                        ${detail.counter ? `<div class="knowledge-detail-formality"><strong>Used for:</strong> ${detail.counter}</div>` : ''}
+                        ${detail.note ? `<div class="knowledge-detail-formality"><em>Note: ${detail.note}</em></div>` : ''}
+                        
+                        ${detail.examples ? `
+                            <div class="knowledge-detail-examples">
+                                ${detail.examples.map(ex => `<div class="knowledge-example">${ex}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${detail.numbers ? `
+                            <div class="knowledge-detail-examples">
+                                ${detail.numbers.map(num => `<div class="knowledge-example">${num}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${detail.sizes ? `
+                            <div class="knowledge-detail-examples">
+                                ${detail.sizes.map(size => `<div class="knowledge-example">${size}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${detail.words ? `
+                            <div class="knowledge-detail-examples">
+                                ${detail.words.map(word => `<div class="knowledge-example">${word}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('') : ''}
+                
+                ${item.tip ? `<div class="knowledge-tip">${item.tip}</div>` : ''}
+            </div>
+        `;
+    });
+    
+    detail.innerHTML = html;
+    showScreen('knowledge');
+}
+
+// ============================================
+// FLASHCARD SECTION
+// ============================================
+
+function populateFlashcardSets() {
+    flashcardSets.innerHTML = '';
+    
+    Object.keys(flashcards).forEach(setKey => {
+        const set = flashcards[setKey];
+        const card = document.createElement('div');
+        card.className = 'flashcard-set-card';
+        card.innerHTML = `
+            <div class="flashcard-set-title">${set.title}</div>
+            <div class="flashcard-set-count">${set.cards.length} cards</div>
+        `;
+        card.addEventListener('click', () => startFlashcardSet(setKey));
+        flashcardSets.appendChild(card);
+    });
+}
+
+function startFlashcardSet(setKey) {
+    currentFlashcardSet = setKey;
+    const set = flashcards[setKey];
+    
+    // Initialize deck (shuffle)
+    flashcardDeck = [...set.cards].sort(() => Math.random() - 0.5);
+    flashcardIndex = 0;
+    incorrectCards = [];
+    correctCount = 0;
+    isFlipped = false;
+    
+    // Update UI
+    document.getElementById('flashcardTitle').textContent = set.title;
+    document.getElementById('flashcardSummary').style.display = 'none';
+    document.getElementById('flashcardControls').style.display = 'none';
+    
+    // Setup event listeners
+    setupFlashcardListeners();
+    
+    // Show first card
+    showCurrentCard();
+    showScreen('flashcard');
+}
+
+function setupFlashcardListeners() {
+    const flashcard = document.getElementById('flashcard');
+    const flipButton = document.getElementById('flipButton');
+    const incorrectButton = document.getElementById('incorrectButton');
+    const correctButton = document.getElementById('correctButton');
+    const reviewIncorrect = document.getElementById('reviewIncorrect');
+    const restartSet = document.getElementById('restartSet');
+    const backToSets = document.getElementById('backToSets');
+    
+    // Remove old listeners by cloning
+    const newFlashcard = flashcard.cloneNode(true);
+    flashcard.parentNode.replaceChild(newFlashcard, flashcard);
+    const newFlipButton = flipButton.cloneNode(true);
+    flipButton.parentNode.replaceChild(newFlipButton, flipButton);
+    
+    // Add new listeners
+    newFlashcard.addEventListener('click', flipCard);
+    newFlipButton.addEventListener('click', flipCard);
+    incorrectButton.onclick = () => markCard(false);
+    correctButton.onclick = () => markCard(true);
+    reviewIncorrect.onclick = reviewIncorrectCards;
+    restartSet.onclick = () => startFlashcardSet(currentFlashcardSet);
+    backToSets.onclick = () => {
+        showScreen('scenario');
+        switchMode('flashcards');
+    };
+}
+
+function showCurrentCard() {
+    if (flashcardIndex >= flashcardDeck.length) {
+        showSummary();
+        return;
+    }
+    
+    const card = flashcardDeck[flashcardIndex];
+    const flashcardElement = document.getElementById('flashcard');
+    
+    // Reset flip
+    flashcardElement.classList.remove('flipped');
+    isFlipped = false;
+    
+    // Update content
+    document.getElementById('cardFront').textContent = card.front;
+    document.getElementById('cardJapanese').textContent = card.back;
+    document.getElementById('cardRomaji').textContent = card.romaji;
+    
+    // Update progress
+    document.getElementById('flashcardProgress').textContent = 
+        `Card ${flashcardIndex + 1} of ${flashcardDeck.length}`;
+    
+    // Hide controls until flipped
+    document.getElementById('flashcardControls').style.display = 'none';
+}
+
+function flipCard() {
+    const flashcardElement = document.getElementById('flashcard');
+    flashcardElement.classList.toggle('flipped');
+    isFlipped = !isFlipped;
+    
+    // Show controls after flip
+    if (isFlipped) {
+        document.getElementById('flashcardControls').style.display = 'flex';
+    }
+}
+
+function markCard(correct) {
+    const card = flashcardDeck[flashcardIndex];
+    
+    if (correct) {
+        correctCount++;
+    } else {
+        incorrectCards.push(card);
+    }
+    
+    // Move to next card
+    flashcardIndex++;
+    showCurrentCard();
+}
+
+function showSummary() {
+    const summary = document.getElementById('flashcardSummary');
+    const stats = document.getElementById('summaryStats');
+    
+    const total = flashcardDeck.length;
+    const incorrect = incorrectCards.length;
+    const correct = total - incorrect;
+    
+    stats.innerHTML = `
+        <div class="stat-item stat-correct">✅ Correct: ${correct}/${total}</div>
+        <div class="stat-item stat-incorrect">❌ Incorrect: ${incorrect}/${total}</div>
+    `;
+    
+    summary.style.display = 'block';
+    document.getElementById('flashcard').style.display = 'none';
+    document.getElementById('flipButton').style.display = 'none';
+    
+    // Hide review button if no incorrect cards
+    document.getElementById('reviewIncorrect').style.display = 
+        incorrectCards.length > 0 ? 'block' : 'none';
+}
+
+function reviewIncorrectCards() {
+    if (incorrectCards.length === 0) return;
+    
+    // Reset with only incorrect cards
+    flashcardDeck = [...incorrectCards];
+    flashcardIndex = 0;
+    incorrectCards = [];
+    correctCount = 0;
+    
+    // Show flashcard again
+    document.getElementById('flashcard').style.display = 'block';
+    document.getElementById('flipButton').style.display = 'block';
+    document.getElementById('flashcardSummary').style.display = 'none';
+    
+    showCurrentCard();
+}
+
+// Call initialization after DOM loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initializeKnowledgeAndFlashcards();
+});
+
+// ============================================
+// AUDIO AND DIFFICULTY MODE FUNCTIONALITY
+// ============================================
+
+let currentDifficulty = 'easy'; // 'easy' or 'hard'
+let speechSynthesis = window.speechSynthesis;
+let currentUtterance = null;
+let japaneseVoice = null;
+
+// Initialize audio and difficulty features
+function initializeAudioAndDifficulty() {
+    const easyBtn = document.getElementById('easyMode');
+    const hardBtn = document.getElementById('hardMode');
+    const audioPlayButton = document.getElementById('audioPlayButton');
+    const audioRepeatButton = document.getElementById('audioRepeatButton');
+    
+    // Load Japanese voice
+    loadJapaneseVoice();
+    
+    // Difficulty toggle
+    easyBtn.addEventListener('click', () => setDifficulty('easy'));
+    hardBtn.addEventListener('click', () => setDifficulty('hard'));
+    
+    // Audio playback
+    audioPlayButton.addEventListener('click', () => playCurrentPhrase());
+    audioRepeatButton.addEventListener('click', () => playCurrentPhrase());
+    
+    // Auto-play in hard mode when phrase is selected
+    // (handled in selectPhrase function)
+}
+
+// Load Japanese voice for text-to-speech
+function loadJapaneseVoice() {
+    // Get available voices
+    function setVoice() {
+        const voices = speechSynthesis.getVoices();
+        // Try to find Japanese voice
+        japaneseVoice = voices.find(voice => voice.lang === 'ja-JP') || 
+                       voices.find(voice => voice.lang.startsWith('ja')) ||
+                       voices[0]; // Fallback to first available voice
+        
+        console.log('Using voice:', japaneseVoice?.name || 'Default');
+    }
+    
+    // Voices might load asynchronously
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = setVoice;
+    }
+    setVoice();
+}
+
+// Set difficulty mode
+function setDifficulty(mode) {
+    currentDifficulty = mode;
+    
+    const easyBtn = document.getElementById('easyMode');
+    const hardBtn = document.getElementById('hardMode');
+    const practiceArea = document.querySelector('.practice-area');
+    const audioRepeatButton = document.getElementById('audioRepeatButton');
+    
+    // Update button states
+    easyBtn.classList.toggle('active', mode === 'easy');
+    hardBtn.classList.toggle('active', mode === 'hard');
+    
+    // Update practice area
+    if (mode === 'hard') {
+        practiceArea.classList.add('hard-mode');
+        audioRepeatButton.style.display = 'block';
+        // Auto-play current phrase in hard mode
+        if (currentPhrase) {
+            setTimeout(() => playCurrentPhrase(), 300);
+        }
+    } else {
+        practiceArea.classList.remove('hard-mode');
+        audioRepeatButton.style.display = 'none';
+    }
+}
+
+// Play current phrase audio
+function playCurrentPhrase() {
+    if (!currentPhrase) return;
+    
+    // Stop any currently playing audio
+    speechSynthesis.cancel();
+    
+    // Create new utterance
+    currentUtterance = new SpeechSynthesisUtterance(currentPhrase.japanese);
+    
+    // Set voice and properties
+    if (japaneseVoice) {
+        currentUtterance.voice = japaneseVoice;
+    }
+    currentUtterance.lang = 'ja-JP';
+    currentUtterance.rate = 0.8; // Slightly slower for learning
+    currentUtterance.pitch = 1.0;
+    currentUtterance.volume = 1.0;
+    
+    const audioPlayButton = document.getElementById('audioPlayButton');
+    
+    // Visual feedback
+    audioPlayButton.classList.add('playing');
+    audioPlayButton.querySelector('.audio-text').textContent = 'Playing...';
+    
+    // Event handlers
+    currentUtterance.onend = () => {
+        audioPlayButton.classList.remove('playing');
+        audioPlayButton.querySelector('.audio-text').textContent = 'Play Audio';
+    };
+    
+    currentUtterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        audioPlayButton.classList.remove('playing');
+        audioPlayButton.querySelector('.audio-text').textContent = 'Play Audio';
+    };
+    
+    // Speak
+    speechSynthesis.speak(currentUtterance);
+}
+
+// Update selectPhrase to enable audio and handle hard mode
+const originalSelectPhrase = selectPhrase;
+selectPhrase = function(phrase, element) {
+    // Call original function
+    originalSelectPhrase.call(this, phrase, element);
+    
+    // Enable audio button
+    document.getElementById('audioPlayButton').disabled = false;
+    document.getElementById('audioRepeatButton').disabled = false;
+    
+    // Auto-play in hard mode
+    if (currentDifficulty === 'hard') {
+        setTimeout(() => playCurrentPhrase(), 500);
+    }
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    initializeAudioAndDifficulty();
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    if (speechSynthesis) {
+        speechSynthesis.cancel();
+    }
+});
