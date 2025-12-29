@@ -420,9 +420,6 @@ function initializeKnowledgeAndFlashcards() {
     populateFlashcardSets();
     
     // Back buttons
-    const knowledgeBackButton = document.getElementById('knowledgeBackButton');
-    const flashcardBackButton = document.getElementById('flashcardBackButton');
-    
     if (knowledgeBackButton) {
         knowledgeBackButton.addEventListener('click', () => {
             showScreen('scenario');
