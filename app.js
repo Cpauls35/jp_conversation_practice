@@ -6,28 +6,30 @@ let recognition = null;
 let deferredPrompt = null;
 let rolePlayMode = false;
 
-// DOM elements
-const scenarioScreen = document.getElementById('scenarioScreen');
-const practiceScreen = document.getElementById('practiceScreen');
-const practiceTitle = document.getElementById('practiceTitle');
-const phraseList = document.getElementById('phraseList');
-const backButton = document.getElementById('backButton');
-const recordButton = document.getElementById('recordButton');
-const recordingStatus = document.getElementById('recordingStatus');
-const resultDisplay = document.getElementById('resultDisplay');
-const phraseJp = document.getElementById('phraseJp');
-const phraseRomaji = document.getElementById('phraseRomaji');
-const phraseEn = document.getElementById('phraseEn');
-const installPrompt = document.getElementById('installPrompt');
-const installButton = document.getElementById('installButton');
-const rolePlayIntro = document.getElementById('rolePlayIntro');
+// DOM elements - will be initialized after DOM loads
+let scenarioScreen, practiceScreen, practiceTitle, phraseList, backButton;
+let recordButton, recordingStatus, resultDisplay, phraseJp, phraseRomaji, phraseEn;
+let installPrompt, installButton, rolePlayIntro;
 
-// Initialize app
-document.addEventListener('DOMContentLoaded', () => {
-    initializeScenarioButtons();
-    initializeSpeechRecognition();
-    initializePWA();
-});
+// Initialize DOM element references
+function initializeDOMElements() {
+    scenarioScreen = document.getElementById('scenarioScreen');
+    practiceScreen = document.getElementById('practiceScreen');
+    practiceTitle = document.getElementById('practiceTitle');
+    phraseList = document.getElementById('phraseList');
+    backButton = document.getElementById('backButton');
+    recordButton = document.getElementById('recordButton');
+    recordingStatus = document.getElementById('recordingStatus');
+    resultDisplay = document.getElementById('resultDisplay');
+    phraseJp = document.getElementById('phraseJp');
+    phraseRomaji = document.getElementById('phraseRomaji');
+    phraseEn = document.getElementById('phraseEn');
+    installPrompt = document.getElementById('installPrompt');
+    installButton = document.getElementById('installButton');
+    rolePlayIntro = document.getElementById('rolePlayIntro');
+    
+    console.log('DOM elements initialized');
+}
 
 // Scenario selection
 function initializeScenarioButtons() {
@@ -377,24 +379,36 @@ let incorrectCards = [];
 let correctCount = 0;
 let isFlipped = false;
 
-// Additional DOM elements
-const modeTabs = document.querySelectorAll('.mode-tab');
-const scenariosContent = document.getElementById('scenariosContent');
-const knowledgeContent = document.getElementById('knowledgeContent');
-const flashcardsContent = document.getElementById('flashcardsContent');
-const knowledgeGrid = document.getElementById('knowledgeGrid');
-const flashcardSets = document.getElementById('flashcardSets');
-const knowledgeScreen = document.getElementById('knowledgeScreen');
-const flashcardScreen = document.getElementById('flashcardScreen');
-const knowledgeBackButton = document.getElementById('knowledgeBackButton');
-const flashcardBackButton = document.getElementById('flashcardBackButton');
-
 // Initialize knowledge and flashcard features
 function initializeKnowledgeAndFlashcards() {
+    console.log('Initializing knowledge and flashcards...');
+    
+    const modeTabs = document.querySelectorAll('.mode-tab');
+    const scenariosContent = document.getElementById('scenariosContent');
+    const knowledgeContent = document.getElementById('knowledgeContent');
+    const flashcardsContent = document.getElementById('flashcardsContent');
+    const knowledgeGrid = document.getElementById('knowledgeGrid');
+    const flashcardSets = document.getElementById('flashcardSets');
+    const knowledgeScreen = document.getElementById('knowledgeScreen');
+    const flashcardScreen = document.getElementById('flashcardScreen');
+    const knowledgeBackButton = document.getElementById('knowledgeBackButton');
+    const flashcardBackButton = document.getElementById('flashcardBackButton');
+    
+    if (!modeTabs || modeTabs.length === 0) {
+        console.error('Mode tabs not found');
+        return;
+    }
+    
+    if (!knowledgeGrid || !flashcardSets) {
+        console.error('Knowledge or flashcard containers not found');
+        return;
+    }
+    
     // Mode tab switching
     modeTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const mode = tab.dataset.mode;
+            console.log('Mode tab clicked:', mode);
             switchMode(mode);
         });
     });
@@ -406,20 +420,37 @@ function initializeKnowledgeAndFlashcards() {
     populateFlashcardSets();
     
     // Back buttons
-    knowledgeBackButton.addEventListener('click', () => {
-        showScreen('scenario');
-        switchMode('knowledge');
-    });
+    const knowledgeBackButton = document.getElementById('knowledgeBackButton');
+    const flashcardBackButton = document.getElementById('flashcardBackButton');
     
-    flashcardBackButton.addEventListener('click', () => {
-        showScreen('scenario');
-        switchMode('flashcards');
-    });
+    if (knowledgeBackButton) {
+        knowledgeBackButton.addEventListener('click', () => {
+            showScreen('scenario');
+            switchMode('knowledge');
+        });
+    }
+    
+    if (flashcardBackButton) {
+        flashcardBackButton.addEventListener('click', () => {
+            showScreen('scenario');
+            switchMode('flashcards');
+        });
+    }
+    
+    console.log('Knowledge and flashcards initialized');
 }
 
 // Switch between modes
 function switchMode(mode) {
     currentMode = mode;
+    
+    console.log('Switching to mode:', mode);
+    
+    // Get elements
+    const modeTabs = document.querySelectorAll('.mode-tab');
+    const scenariosContent = document.getElementById('scenariosContent');
+    const knowledgeContent = document.getElementById('knowledgeContent');
+    const flashcardsContent = document.getElementById('flashcardsContent');
     
     // Update tabs
     modeTabs.forEach(tab => {
@@ -427,9 +458,11 @@ function switchMode(mode) {
     });
     
     // Update content
-    scenariosContent.classList.toggle('active', mode === 'scenarios');
-    knowledgeContent.classList.toggle('active', mode === 'knowledge');
-    flashcardsContent.classList.toggle('active', mode === 'flashcards');
+    if (scenariosContent) scenariosContent.classList.toggle('active', mode === 'scenarios');
+    if (knowledgeContent) knowledgeContent.classList.toggle('active', mode === 'knowledge');
+    if (flashcardsContent) flashcardsContent.classList.toggle('active', mode === 'flashcards');
+    
+    console.log('Mode switched to:', mode);
 }
 
 // ============================================
@@ -437,6 +470,12 @@ function switchMode(mode) {
 // ============================================
 
 function populateKnowledgeGrid() {
+    const knowledgeGrid = document.getElementById('knowledgeGrid');
+    if (!knowledgeGrid) {
+        console.error('Knowledge grid not found');
+        return;
+    }
+    
     knowledgeGrid.innerHTML = '';
     
     Object.keys(knowledge).forEach(categoryKey => {
@@ -516,6 +555,12 @@ function showKnowledgeDetail(categoryKey) {
 // ============================================
 
 function populateFlashcardSets() {
+    const flashcardSets = document.getElementById('flashcardSets');
+    if (!flashcardSets) {
+        console.error('Flashcard sets container not found');
+        return;
+    }
+    
     flashcardSets.innerHTML = '';
     
     Object.keys(flashcards).forEach(setKey => {
@@ -674,9 +719,6 @@ function reviewIncorrectCards() {
 }
 
 // Call initialization after DOM loaded
-document.addEventListener('DOMContentLoaded', () => {
-    initializeKnowledgeAndFlashcards();
-});
 
 // ============================================
 // AUDIO AND DIFFICULTY MODE FUNCTIONALITY
@@ -694,19 +736,37 @@ function initializeAudioAndDifficulty() {
     const audioPlayButton = document.getElementById('audioPlayButton');
     const audioRepeatButton = document.getElementById('audioRepeatButton');
     
+    // Check if elements exist
+    if (!easyBtn || !hardBtn) {
+        console.error('Difficulty buttons not found');
+        return;
+    }
+    
+    if (!audioPlayButton || !audioRepeatButton) {
+        console.error('Audio buttons not found');
+        return;
+    }
+    
+    console.log('Initializing audio and difficulty...');
+    
     // Load Japanese voice
     loadJapaneseVoice();
     
     // Difficulty toggle
-    easyBtn.addEventListener('click', () => setDifficulty('easy'));
-    hardBtn.addEventListener('click', () => setDifficulty('hard'));
+    easyBtn.addEventListener('click', () => {
+        console.log('Easy mode clicked');
+        setDifficulty('easy');
+    });
+    hardBtn.addEventListener('click', () => {
+        console.log('Hard mode clicked');
+        setDifficulty('hard');
+    });
     
     // Audio playback
     audioPlayButton.addEventListener('click', () => playCurrentPhrase());
     audioRepeatButton.addEventListener('click', () => playCurrentPhrase());
     
-    // Auto-play in hard mode when phrase is selected
-    // (handled in selectPhrase function)
+    console.log('Audio and difficulty initialized');
 }
 
 // Load Japanese voice for text-to-speech
@@ -813,9 +873,25 @@ selectPhrase = function(phrase, element) {
     }
 };
 
-// Initialize when DOM is ready
+// ============================================
+// CONSOLIDATED INITIALIZATION
+// ============================================
+
+// Single DOMContentLoaded listener to initialize everything
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing app...');
+    
+    // Initialize DOM element references FIRST
+    initializeDOMElements();
+    
+    // Initialize all features
+    initializeScenarioButtons();
+    initializeSpeechRecognition();
+    initializeKnowledgeAndFlashcards();
     initializeAudioAndDifficulty();
+    initializePWA();
+    
+    console.log('App initialized successfully');
 });
 
 // Clean up on page unload
