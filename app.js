@@ -389,6 +389,7 @@ let flashcardDeck = [];
 let incorrectCards = [];
 let correctCount = 0;
 let isFlipped = false;
+let studyMode = 'enToJp'; // 'enToJp' or 'jpToEn'
 
 // Initialize knowledge and flashcard features
 function initializeKnowledgeAndFlashcards() {
@@ -587,22 +588,29 @@ function populateFlashcardSets() {
 function startFlashcardSet(setKey) {
     currentFlashcardSet = setKey;
     const set = flashcards[setKey];
-    
+
     // Initialize deck (shuffle)
     flashcardDeck = [...set.cards].sort(() => Math.random() - 0.5);
     flashcardIndex = 0;
     incorrectCards = [];
     correctCount = 0;
     isFlipped = false;
-    
+    studyMode = 'enToJp'; // Reset to default study mode
+
     // Update UI
     document.getElementById('flashcardTitle').textContent = set.title;
     document.getElementById('flashcardSummary').style.display = 'none';
     document.getElementById('flashcardControls').style.display = 'none';
-    
+
+    // Reset study mode buttons
+    const enToJpBtn = document.getElementById('enToJpMode');
+    const jpToEnBtn = document.getElementById('jpToEnMode');
+    if (enToJpBtn) enToJpBtn.classList.add('active');
+    if (jpToEnBtn) jpToEnBtn.classList.remove('active');
+
     // Setup event listeners
     setupFlashcardListeners();
-    
+
     // Show first card
     showCurrentCard();
     showScreen('flashcard');
@@ -616,13 +624,15 @@ function setupFlashcardListeners() {
     const reviewIncorrect = document.getElementById('reviewIncorrect');
     const restartSet = document.getElementById('restartSet');
     const backToSets = document.getElementById('backToSets');
-    
+    const enToJpBtn = document.getElementById('enToJpMode');
+    const jpToEnBtn = document.getElementById('jpToEnMode');
+
     // Remove old listeners by cloning
     const newFlashcard = flashcard.cloneNode(true);
     flashcard.parentNode.replaceChild(newFlashcard, flashcard);
     const newFlipButton = flipButton.cloneNode(true);
     flipButton.parentNode.replaceChild(newFlipButton, flipButton);
-    
+
     // Add new listeners
     newFlashcard.addEventListener('click', flipCard);
     newFlipButton.addEventListener('click', flipCard);
@@ -634,6 +644,25 @@ function setupFlashcardListeners() {
         showScreen('scenario');
         switchMode('flashcards');
     };
+
+    // Study mode toggle listeners
+    if (enToJpBtn) {
+        enToJpBtn.onclick = () => {
+            studyMode = 'enToJp';
+            enToJpBtn.classList.add('active');
+            jpToEnBtn.classList.remove('active');
+            showCurrentCard();
+        };
+    }
+
+    if (jpToEnBtn) {
+        jpToEnBtn.onclick = () => {
+            studyMode = 'jpToEn';
+            jpToEnBtn.classList.add('active');
+            enToJpBtn.classList.remove('active');
+            showCurrentCard();
+        };
+    }
 }
 
 function showCurrentCard() {
@@ -641,23 +670,34 @@ function showCurrentCard() {
         showSummary();
         return;
     }
-    
+
     const card = flashcardDeck[flashcardIndex];
     const flashcardElement = document.getElementById('flashcard');
-    
+
     // Reset flip
     flashcardElement.classList.remove('flipped');
     isFlipped = false;
-    
-    // Update content
-    document.getElementById('cardFront').textContent = card.front;
-    document.getElementById('cardJapanese').textContent = card.back;
-    document.getElementById('cardRomaji').textContent = card.romaji;
-    
+
+    // Update content based on study mode
+    if (studyMode === 'enToJp') {
+        // Show English on front, Japanese on back
+        document.getElementById('cardFront').textContent = card.front;
+        document.getElementById('cardJapanese').textContent = card.back;
+        document.getElementById('cardRomaji').textContent = card.romaji;
+    } else {
+        // Show Japanese on front, English on back
+        document.getElementById('cardFront').innerHTML = `
+            <div style="font-family: var(--font-jp); font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${card.back}</div>
+            <div style="font-family: var(--font-en); font-size: 1.2rem; color: var(--sage);">${card.romaji}</div>
+        `;
+        document.getElementById('cardJapanese').textContent = card.front;
+        document.getElementById('cardRomaji').textContent = '';
+    }
+
     // Update progress
-    document.getElementById('flashcardProgress').textContent = 
+    document.getElementById('flashcardProgress').textContent =
         `Card ${flashcardIndex + 1} of ${flashcardDeck.length}`;
-    
+
     // Hide controls until flipped
     document.getElementById('flashcardControls').style.display = 'none';
 }
